@@ -11,7 +11,6 @@ import java.util.Scanner;
 
 public class CustomerDatabase {
 
-    // Setup
     private static String URL = "jdbc:sqlite::resource:Chinook_Sqlite.sqlite";
     private static Connection conn = null;
     public static ArrayList<Customer> customers = new ArrayList<Customer>();
@@ -22,32 +21,34 @@ public class CustomerDatabase {
         int userInput;
         Customer customer;
 
-        if (scanner.hasNextInt()){//Checking if the input is an integer
-            userInput= scanner.nextInt();
-            customer = getCustomerName(userInput);
+        if (scanner.hasNextInt()) {//Checking if the input is an integer
+            userInput = scanner.nextInt();
+            customer = getCustomerName(userInput);//Get den customer who has the id that the user wrote
 
-        } else{
-               System.out.println("Getting a random customer ..");
-               customer = getRandomCustomerName();
-               userInput = Integer.parseInt(customer.getCustomerId());
+        } else {// If not int, get a random customer
+            System.out.println("Getting a random customer ..");
+            customer = getRandomCustomerName();
+            userInput = Integer.parseInt(customer.getCustomerId());
 
-           }
+        }
         System.out.println("The full name of the customer is: " + customer.getFirstName() + " " + customer.getLastName());
 
 
-        ArrayList<String> getgeneres = getGenreName(userInput);
-        System.out.println("This all the generes that the customers like, in order " + getgeneres);
+        //Get All the Genre that the customer likes
+        ArrayList<String> getGeneres = getGenreName(userInput);
+        System.out.println("This all the generes that the customers like, in order " + getGeneres);
 
 
+        //Get the customers most popular genre
         ArrayList<String> generes = getMostPopularGenre(userInput);
+        System.out.println("Customers most popular genre is : " + generes.get(generes.size() - 1));
 
-            System.out.println("Customers most popular genre is : " + generes.get(generes.size() -1));
-
-            for(String genre : generes){
-                if(genre.length() == generes.size()-1){
-                    System.out.println("Customers have another most popular genre is : " + generes.get(generes.size() -2));
-                }
+        // In case of Ties print the other one
+        for (String genre : generes) {
+            if (genre.length() == generes.size() - 1) {
+                System.out.println("Customers have another most popular genre is : " + generes.get(generes.size() - 2));
             }
+        }
 
     }
 
@@ -63,14 +64,11 @@ public class CustomerDatabase {
             // Execute Statement
             ResultSet resultSet = preparedStatement.executeQuery();
 
-
-                     return new Customer(
-                                resultSet.getString("customerId"),
-                                resultSet.getString("firstName"),
-                                resultSet.getString("lastName")
-                     );
-
-
+            return new Customer(
+                    resultSet.getString("customerId"),
+                    resultSet.getString("firstName"),
+                    resultSet.getString("lastName")
+            );
 
         } catch (Exception ex) {
             System.out.println("Something went wrong(CustomerName)...");
@@ -131,13 +129,13 @@ public class CustomerDatabase {
             conn = DriverManager.getConnection(URL);
 
             // Prepare Statement
-            //COUNT(Invoice.InvoiceId),
+
+            // A quary that gets all the customers genre
             PreparedStatement preparedStatement =
                     conn.prepareStatement("SELECT Genre.Name FROM Genre JOIN Track ON Genre.GenreId = Track.GenreId "
                             + "JOIN InvoiceLine ON InvoiceLine.TrackId = Track.TrackId "
                             + "JOIN Invoice ON InvoiceLine.InvoiceId = Invoice.InvoiceId "
                             + "WHERE CustomerId =? " + "GROUP BY Genre.Name " + "ORDER BY COUNT(Invoice.InvoiceId) DESC");
-            //+ "GROUP BY Genre.Name " + "ORDER BY COUNT(Invoice.InvoiceId) DESC"
             preparedStatement.setInt(1, customerId);
 
             // Execute Statement
@@ -170,13 +168,15 @@ public class CustomerDatabase {
             // Open Connection
             conn = DriverManager.getConnection(URL);
             // Prepare Statement
+
+            // Get the most popular genre by counting Invoice
             PreparedStatement preparedStatement =
                     conn.prepareStatement(" SELECT Genre.Name, COUNT(Invoice.InvoiceId), Customer.FirstName, Genre.GenreId FROM Invoice "
                             + "JOIN Customer ON Invoice.CustomerId = Customer.CustomerId "
                             + "JOIN InvoiceLine ON InvoiceLine.InvoiceId = Invoice.InvoiceId "
                             + "JOIN Track ON Track.TrackId = InvoiceLine.TrackId "
                             + "JOIN Genre ON Track.GenreId = Genre.GenreId "
-                            + "WHERE Customer.CustomerId =? " + "GROUP BY Genre.Name " + "ORDER BY COUNt(Invoice.InvoiceId)" );
+                            + "WHERE Customer.CustomerId =? " + "GROUP BY Genre.Name " + "ORDER BY COUNt(Invoice.InvoiceId)");
             preparedStatement.setInt(1, customerId);
 
             // Execute Statement

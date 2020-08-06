@@ -1,4 +1,9 @@
+/* author Marina
+*For a given  customer from inside the database:
 
+Display the customer's full name
+Display that single customer's most popular genre (in the case of a tie, display both).
+(The genre that corresponds to the most tracks from invoices associated to that customer) */
 
 import java.sql.Connection;
 import java.sql.DriverManager;
